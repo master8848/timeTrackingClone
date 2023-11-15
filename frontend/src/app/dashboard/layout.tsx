@@ -3,11 +3,10 @@
 import { cn } from "@/lib/utils";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { useLocalStorage } from "react-use";
 
 import { RxCross1 } from "react-icons/rx";
 import { AiFillHome, AiOutlineMenu } from "react-icons/ai";
-import { useLocation, useToggle } from "react-use";
+import { useLocation, useToggle, useLocalStorage } from "react-use";
 import Link from "next/link";
 import {
   Tooltip,
@@ -21,15 +20,15 @@ interface IPropslayout {
   children: React.ReactNode;
 }
 const tabs = [
-  { name: "Task status", href: "/dashboard/taskStatus" },
-  { name: "My task", href: "/dashboard/myTask" },
-  { name: "Weekly Timesheet", href: "/dashboard/weeklyTimesheet" },
-  { name: "Track Time", href: "/dashboard/trackTime" },
-  { name: "Approval", href: "/dashboard/approved" },
-  // { name: "", href: "/dashboard/taskStatus", current: false },
+  { name: "Task status", href: "/dashboard/home/taskStatus" },
+  { name: "My task", href: "/dashboard/home/myTask" },
+  { name: "Weekly Timesheet", href: "/dashboard/home/weeklyTimesheet" },
+  { name: "Track Time", href: "/dashboard/home/trackTime" },
+  { name: "Approval", href: "/dashboard/home/approved" },
+  // { name: "", href: "/dashboard/home/taskStatus", current: false },
   {
     name: "Pending weekly timesheet",
-    href: "/dashboard/pendingWeeklyTimesheet",
+    href: "/dashboard/home/pendingWeeklyTimesheet",
   },
 ];
 const Dashboard: React.FunctionComponent<IPropslayout> = ({ children }) => {
@@ -46,15 +45,16 @@ const Dashboard: React.FunctionComponent<IPropslayout> = ({ children }) => {
     () => [
       {
         name: "Home",
-        href: "dashboard/myTask",
+        href: "/dashboard/home/myTask",
+        check: "/dashboard/home/",
         icon: AiFillHome,
       },
     ],
     []
   );
   return (
-    <div className={cn(isDarkTheme ? "dark" : "light")}>
-      <div className="min-h-screen  bg-slate-900 text-gray-100 transition-all ">
+    <div className={cn(isDarkTheme ? "dark" : "")}>
+      <div className="min-h-screen  bg-background text-foreground transition-all ">
         <>
           <div>
             {/* Static sidebar for desktop */}
@@ -65,7 +65,7 @@ const Dashboard: React.FunctionComponent<IPropslayout> = ({ children }) => {
               )}
             >
               {/* Sidebar component, swap this element with another sidebar if you like */}
-              <div className="flex-1 flex flex-col min-h-0 bg-gray-800">
+              <div className="flex-1 flex flex-col min-h-0 bg-muted">
                 <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto relative">
                   <div className="flex items-center flex-shrink-0 px-4">
                     {/* <img
@@ -75,10 +75,14 @@ const Dashboard: React.FunctionComponent<IPropslayout> = ({ children }) => {
                   /> */}
                   </div>
                   <div
-                    className={cn("absolute top-2 right-2", "right-3")}
+                    className="absolute top-2 right-3 text-foreground"
                     onClick={() => toggle()}
                   >
-                    {isFullNavbar ? <RxCross1 /> : <AiOutlineMenu />}
+                    {isFullNavbar ? (
+                      <RxCross1 className="text-foreground" />
+                    ) : (
+                      <AiOutlineMenu className="text-foreground" />
+                    )}
                   </div>
                   <nav className="mt-5 flex-1 px-1 space-y-1">
                     {navigation.map((item) => (
@@ -87,9 +91,9 @@ const Dashboard: React.FunctionComponent<IPropslayout> = ({ children }) => {
                         href={item.href}
                         onClick={() => isFullNavbar && toggle()}
                         className={cn(
-                          router.pathname?.includes(item.href)
-                            ? "bg-gray-900 text-white"
-                            : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                          router.pathname?.includes(item.check)
+                            ? "bg-background text-primary-foreground"
+                            : "text-foreground bg-muted hover:bg-gray-700 hover:text-muted-foreground",
                           "group flex items-center px-2 py-2 text-sm font-medium rounded-md"
                         )}
                       >
@@ -100,17 +104,27 @@ const Dashboard: React.FunctionComponent<IPropslayout> = ({ children }) => {
                                 <item.icon
                                   className={cn(
                                     router.pathname?.includes(item.href)
-                                      ? "text-gray-300"
-                                      : "text-gray-400 group-hover:text-gray-300",
+                                      ? "text-primary-foreground bg-background"
+                                      : "text-foreground group-hover:text-muted-foreground",
                                     "mr-3 flex-shrink-0 h-3 w-3"
                                   )}
                                   aria-hidden="true"
                                 />
-                                {isFullNavbar ? item.name : null}
+                                <div
+                                  className={cn(
+                                    router.pathname?.includes(item.href)
+                                      ? "text-primary-foreground bg-background"
+                                      : "text-foreground group-hover:text-muted-foreground"
+                                  )}
+                                >
+                                  {isFullNavbar ? item.name : null}
+                                </div>
                               </>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>{item.name}</p>
+                              <p className="text-foreground bg-background">
+                                {item.name}
+                              </p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -119,26 +133,56 @@ const Dashboard: React.FunctionComponent<IPropslayout> = ({ children }) => {
                   </nav>
                 </div>
                 {isFullNavbar ? (
-                  <div className="flex-shrink-0 flex bg-gray-700 p-4">
-                    <a href="#" className="flex-shrink-0 w-full group block">
-                      <div className="flex items-center">
-                        <div>
-                          <img
-                            className="inline-block h-9 w-9 rounded-full"
-                            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                            alt=""
-                          />
+                  <div className="">
+                    <div className="flex-shrink-0 flex bg-background p-4">
+                      <a
+                        href="#"
+                        onClick={(ev) => {
+                          ev.preventDefault();
+                          setIsDarkTheme(!isDarkTheme);
+                        }}
+                        className="flex-shrink-0 w-full group block"
+                      >
+                        <div className="flex items-center">
+                          <div>
+                            <img
+                              className="inline-block h-9 w-9 rounded-full"
+                              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                              alt=""
+                            />
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-white">
+                              Tom Cook
+                            </p>
+                            <p className="text-xs font-medium text-gray-300 group-hover:text-gray-200">
+                              View profile
+                            </p>
+                          </div>
                         </div>
-                        <div className="ml-3">
-                          <p className="text-sm font-medium text-white">
-                            Tom Cook
-                          </p>
-                          <p className="text-xs font-medium text-gray-300 group-hover:text-gray-200">
-                            View profile
-                          </p>
+                      </a>
+                    </div>
+                    <div className="flex-shrink-0 flex bg-background p-4">
+                      <a href="#" className="flex-shrink-0 w-full group block">
+                        <div className="flex items-center">
+                          <div>
+                            <img
+                              className="inline-block h-9 w-9 rounded-full"
+                              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                              alt=""
+                            />
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-primary-foreground">
+                              Tom Cook
+                            </p>
+                            <p className="text-xs font-medium text-foreground group-hover:text-gray-200">
+                              View profile
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </a>
+                      </a>
+                    </div>
                   </div>
                 ) : (
                   <div className="w-full flex items-center justify-center">
